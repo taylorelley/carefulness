@@ -15,56 +15,51 @@ export default function CarefulnessKnob() {
   const [time, setTime] = useState(5)
   const [cost, setCost] = useState(5)
 
-  const adjustCost = useCallback(
-    (cf: number, tm: number) => clamp(cf + tm),
-    [],
-  )
-
   const stepCarefulness = useCallback(
     (newVal: number) => {
-      const clamped = clamp(newVal)
       setCarefulness((prevCarefulness) => {
-        const delta = clamped - prevCarefulness
+        const nextCarefulness = clamp(newVal)
+        const delta = nextCarefulness - prevCarefulness
         setTime((prevTime) => {
-          const newTime = clamp(prevTime + delta)
-          setCost(adjustCost(clamped, newTime))
-          return newTime
+          const nextTime = clamp(prevTime + delta)
+          setCost(clamp(nextCarefulness + nextTime))
+          return nextTime
         })
-        return clamped
+        return nextCarefulness
       })
     },
-    [adjustCost],
+    [],
   )
 
   const stepTime = useCallback(
     (newVal: number) => {
-      const clamped = clamp(newVal)
       setTime((prevTime) => {
-        const delta = clamped - prevTime
+        const nextTime = clamp(newVal)
+        const delta = nextTime - prevTime
         setCarefulness((prevCarefulness) => {
-          const newCarefulness = clamp(prevCarefulness + delta)
-          setCost(adjustCost(newCarefulness, clamped))
-          return newCarefulness
+          const nextCarefulness = clamp(prevCarefulness + delta)
+          setCost(clamp(nextCarefulness + nextTime))
+          return nextCarefulness
         })
-        return clamped
+        return nextTime
       })
     },
-    [adjustCost],
+    [],
   )
 
   const stepCost = useCallback(
     (newVal: number) => {
       const clamped = clamp(newVal)
-      setTime((prevTime) => {
-        let newCarefulness = clamp(clamped - prevTime)
-        let newTime = prevTime
-        if (newCarefulness === MIN || newCarefulness === MAX) {
-          newTime = clamp(clamped - newCarefulness)
-        }
-        setCarefulness(newCarefulness)
-        return newTime
-      })
       setCost(clamped)
+      setTime((prevTime) => {
+        const nextCarefulness = clamp(clamped - prevTime)
+        let nextTime = prevTime
+        if (nextCarefulness === MIN || nextCarefulness === MAX) {
+          nextTime = clamp(clamped - nextCarefulness)
+        }
+        setCarefulness(nextCarefulness)
+        return nextTime
+      })
     },
     [],
   )
