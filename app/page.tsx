@@ -131,7 +131,13 @@ export default function CarefulnessKnob() {
                       style: { textAnchor: "middle", fontSize: "14px", fill: "#475569" },
                     }}
                   />
-                  <ZAxis type="number" dataKey="z" range={[60, 400]} name="Cost" />
+                  <ZAxis
+                    type="number"
+                    dataKey="z"
+                    name="Cost"
+                    domain={[1, 10]}
+                    range={[60, 400]}
+                  />
                   <Scatter
                     name="Data Point"
                     data={data}
