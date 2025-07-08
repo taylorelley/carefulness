@@ -136,7 +136,7 @@ export default function CarefulnessKnob() {
                     dataKey="z"
                     name="Cost"
                     domain={[1, 10]}
-                    range={[60, 5000]}
+                    range={[60, 10000]}
                   />
                   <Scatter
                     name="Data Point"
