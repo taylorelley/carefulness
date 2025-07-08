@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, ResponsiveContainer } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { RotatingKnob } from "@/components/rotating-knob"
 
@@ -62,7 +62,7 @@ export default function CarefulnessKnob() {
     {
       x: time,
       y: carefulness,
-      z: cost * 100 + 200, // Increased scaling for more visible size changes
+      z: cost, // bubble size driven directly by cost
     },
   ]
 
@@ -131,6 +131,7 @@ export default function CarefulnessKnob() {
                       style: { textAnchor: "middle", fontSize: "14px", fill: "#475569" },
                     }}
                   />
+                  <ZAxis type="number" dataKey="z" range={[60, 400]} name="Cost" />
                   <Scatter
                     name="Data Point"
                     data={data}
