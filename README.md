@@ -22,3 +22,5 @@ docker-compose up --build
 ```
 
 The application will be served on port 3000.
+
+Make sure the `public` directory exists (it can be empty) so the Docker build succeeds.
