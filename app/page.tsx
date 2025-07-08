@@ -6,55 +6,68 @@ import { Card, CardContent } from "@/components/ui/card"
 import { RotatingKnob } from "@/components/rotating-knob"
 
 export default function CarefulnessKnob() {
+  const MIN = 1
+  const MAX = 10
+
+  const clamp = (x: number) => Math.max(MIN, Math.min(MAX, x))
+
   const [carefulness, setCarefulness] = useState(5)
   const [time, setTime] = useState(5)
   const [cost, setCost] = useState(5)
 
-  const TOTAL_SUM = 15 // Constant sum for all three values
+  const adjustCost = useCallback(
+    (cf: number, tm: number) => clamp(cf + tm),
+    [],
+  )
 
-  // Helper function to redistribute values while maintaining constant sum
-  const redistributeValues = useCallback(
-    (changedParam: "carefulness" | "time" | "cost", newValue: number) => {
-      const currentSum = carefulness + time + cost
-      const difference =
-        newValue - (changedParam === "carefulness" ? carefulness : changedParam === "time" ? time : cost)
-
-      if (changedParam === "carefulness") {
-        const remaining = TOTAL_SUM - newValue
-        const currentOthers = time + cost
-        if (currentOthers > 0) {
-          const ratio = remaining / currentOthers
-          const newTime = Math.max(1, Math.min(10, Math.round(time * ratio)))
-          const newCost = Math.max(1, Math.min(10, TOTAL_SUM - newValue - newTime))
-          setCarefulness(newValue)
-          setTime(newTime)
-          setCost(newCost)
-        }
-      } else if (changedParam === "time") {
-        const remaining = TOTAL_SUM - newValue
-        const currentOthers = carefulness + cost
-        if (currentOthers > 0) {
-          const ratio = remaining / currentOthers
-          const newCarefulness = Math.max(1, Math.min(10, Math.round(carefulness * ratio)))
-          const newCost = Math.max(1, Math.min(10, TOTAL_SUM - newValue - newCarefulness))
-          setTime(newValue)
-          setCarefulness(newCarefulness)
-          setCost(newCost)
-        }
-      } else if (changedParam === "cost") {
-        const remaining = TOTAL_SUM - newValue
-        const currentOthers = carefulness + time
-        if (currentOthers > 0) {
-          const ratio = remaining / currentOthers
-          const newCarefulness = Math.max(1, Math.min(10, Math.round(carefulness * ratio)))
-          const newTime = Math.max(1, Math.min(10, TOTAL_SUM - newValue - newCarefulness))
-          setCost(newValue)
-          setCarefulness(newCarefulness)
-          setTime(newTime)
-        }
-      }
+  const stepCarefulness = useCallback(
+    (newVal: number) => {
+      const newCarefulness = clamp(newVal)
+      const delta = newCarefulness - carefulness
+      const newTime = clamp(time + delta)
+      const newCost = adjustCost(newCarefulness, newTime)
+      setCarefulness(newCarefulness)
+      setTime(newTime)
+      setCost(newCost)
     },
-    [carefulness, time, cost],
+    [carefulness, time, adjustCost],
+  )
+
+  const stepTime = useCallback(
+    (newVal: number) => {
+      const newTime = clamp(newVal)
+      const delta = newTime - time
+      const newCarefulness = clamp(carefulness + delta)
+      const newCost = adjustCost(newCarefulness, newTime)
+      setCarefulness(newCarefulness)
+      setTime(newTime)
+      setCost(newCost)
+    },
+    [carefulness, time, adjustCost],
+  )
+
+  const stepCost = useCallback(
+    (newVal: number) => {
+      const newCost = clamp(newVal)
+      let newCarefulness = clamp(newCost - time)
+      let newTime = time
+      if (newCarefulness === MIN || newCarefulness === MAX) {
+        newTime = clamp(newCost - newCarefulness)
+      }
+      setCost(newCost)
+      setCarefulness(newCarefulness)
+      setTime(newTime)
+    },
+    [time],
+  )
+
+  const userMoved = useCallback(
+    (knob: "carefulness" | "time" | "cost", newValue: number) => {
+      if (knob === "carefulness") stepCarefulness(newValue)
+      else if (knob === "time") stepTime(newValue)
+      else stepCost(newValue)
+    },
+    [stepCarefulness, stepTime, stepCost],
   )
 
   // Create data point for the bubble chart
@@ -167,7 +180,7 @@ export default function CarefulnessKnob() {
                   <div className="flex-shrink-0">
                     <RotatingKnob
                       value={carefulness}
-                      onChange={(value) => redistributeValues("carefulness", value)}
+                      onChange={(value) => userMoved("carefulness", value)}
                       min={1}
                       max={10}
                       color="#6366f1"
@@ -190,7 +203,7 @@ export default function CarefulnessKnob() {
                   <div className="flex-shrink-0">
                     <RotatingKnob
                       value={time}
-                      onChange={(value) => redistributeValues("time", value)}
+                      onChange={(value) => userMoved("time", value)}
                       min={1}
                       max={10}
                       color="#10b981"
@@ -213,7 +226,7 @@ export default function CarefulnessKnob() {
                   <div className="flex-shrink-0">
                     <RotatingKnob
                       value={cost}
-                      onChange={(value) => redistributeValues("cost", value)}
+                      onChange={(value) => userMoved("cost", value)}
                       min={1}
                       max={10}
                       color="#a855f7"
